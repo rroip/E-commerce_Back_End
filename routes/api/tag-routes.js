@@ -2,23 +2,42 @@ const router = require('express').Router();
 const { Tag, Product, ProductTag } = require('../../models');
 
 // The `/api/tags` endpoint
-
-router.get('/', (req, res) => {
-  // find all tags
-  // be sure to include its associated Product data
-  Tag.findAll({
-    include: [{
-      model: Product,
-      attributes: ["product_name", "price", "stock", "category_id"],
-    }
-    ]
-  })
-  .then(dbTagData => res.json(dbTagData))
-  .catch(err => {
-      console.log(err);
-      res.status(500).json(err);
-  });
+router.get('/', async (req, res) => {
+try {
+  const tags = await Tag.findAll({
+        include: [{
+          model: Product,
+          attributes: ["product_name", "price", "stock", "category_id"],
+        }
+        ]
+      })
+      if (tags){
+        res.status(200).json(tags) 
+      
+      }else{
+        res.status(404).json("no tags found!")
+      }
+} catch(err){
+  res.status(500).json(err.message)
+}
 });
+
+// router.get('/', (req, res) => {
+//   // find all tags
+//   // be sure to include its associated Product data
+//   Tag.findAll({
+//     include: [{
+//       model: Product,
+//       attributes: ["product_name", "price", "stock", "category_id"],
+//     }
+//     ]
+//   })
+//   .then(dbTagData => res.json(dbTagData))
+//   .catch(err => {
+//       console.log(err);
+//       res.status(500).json(err);
+//   });
+// });
 
 router.get('/:id', (req, res) => {
   // find a single tag by its `id`
@@ -53,7 +72,7 @@ router.post('/', (req, res) => {
 
 router.put('/:id', (req, res) => {
   // update a tag's name by its `id` value
-  Tag.update({
+  Tag.update(req.body, {
     where: {
       id: req.params.id
     }
